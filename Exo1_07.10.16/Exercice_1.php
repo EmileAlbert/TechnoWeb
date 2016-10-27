@@ -8,6 +8,7 @@
         <h2>Exercice 1</h2>
 		
 		<p> Créer un script permettant d'afficher dans l'ordre décroissant les chiffres impairs entre 100 et 0. </p> 
+		<!-- Comments -->
 		
 		<?php 
 		
