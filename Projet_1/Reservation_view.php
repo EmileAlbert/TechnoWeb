@@ -1,3 +1,19 @@
+<?php
+	//variable declaration
+	$dest = '';
+	$pax = 0;
+	$insurance = false;
+	$check = false; 		
+	
+	if(isset($res)) 
+	{	
+		//loads values from reservation if it exists
+		$destination= $res->get_destination();
+		$pax = $res->get_nbr_pers();
+		$insurance = $res->get_insurance();
+	}
+?>
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -17,7 +33,27 @@
 		
         <form method="post" >
 		<!-- Different part of the form -->
+		
 		<p>Destination :
+		<input type='text' name='destination' value="" /> 
+					
+		<p>Nombre de voyageur(s):
+		<input type='text' name='nbr_pers' value="" /> 
+				
+		<p>Assurance annulation
+		<input type='checkbox' name='inssurance' id='case' /><label for='case'></label><br><br>
+
+		</p>
+		
+		<input type='submit' name='next'  value='Suivant'/>
+		
+		</form> <br>
+				
+    </body>
+</html>
+
+<!-- Autre forme de questionnaire -->
+<!--
 		<select name="pays">
 			<option value="choix1">Italie</option>
 			<option value="choix2" selected='selected'>Espagne</option>
@@ -25,24 +61,12 @@
 			<option value="choix4">France</option>
 		</select>
 		<p/>
-		
-		<p>Nombre de voyageur(s):
+-->
+<!--
 		<select name="nombre">
 			<option value="choix1" selected='selected'>1</option>
 			<option value="choix2">2</option>
 			<option value="choix3">3</option>
 			<option value="choix4">4</option>
 		</select>
-		
-		<p>Assurance annulation
-		<input type='checkbox' name='AssAnn' id='case' /><label for='case'></label><br><br>
-		</p>
-		
-		<input type='submit' name='next'  value='Details'/>
-		
-		</form> <br>
-		
-		-
-			
-    </body>
-</html>
+-->
