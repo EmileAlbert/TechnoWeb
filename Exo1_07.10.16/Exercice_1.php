@@ -9,6 +9,7 @@
 		
 		<p> Créer un script permettant d'afficher dans l'ordre décroissant les chiffres impairs entre 100 et 0. </p> 
 		<!-- Comments -->
+	    	<!-- Comments2 --> 
 		
 		<?php 
 		
@@ -28,4 +29,7 @@
 		
     </body>
 </html>
+<<<<<<< HEAD
 
+=======
+>>>>>>> b517c52fe4d463d6572851a839e6992ffae636e2
