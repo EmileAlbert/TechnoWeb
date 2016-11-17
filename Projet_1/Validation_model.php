@@ -1,5 +1,5 @@
 <?php
-	class reservation
+	class confirmation
 	{
 		//declares required variables.
 		private $destination;
