@@ -1,22 +1,23 @@
 <?php
 
-//ToDo : Assainir les entrées & Css 
+//ToDo 
+//     : Assainir les entrées & Css 
 //     : Retour Details -> Set value   
+//     : Retrouver la liste des personne pour sauver dans la bdd
+// 	   : BackName -> LIGNE 208 ? CA marche avant !
 
 
 	session_start();
+	
 	include "ReservationAccueil_model.php";
 	include "Person.php";
 	
-	$error = "";
-	$_SESSION["res"] = null; 
-	$_SESSION["pers"] = "a";
-	$_SESSION["ErreurPerson"] = array();
-	$_SESSION["ErreurAge"] = array();
-	$_SESSION["BackName"] = array();
-	$_SESSION["BackAge"] = array();
+	$ErreurPerson = array();
+	$ErreurAge = array();
+	$BackName = array();
+	$BackAge = array();
 	
-	// actions if first validate button is pressed or not --> Details ( Name & age )
+	// actions if first validate button is pressed or not --> DETAILS ( Name & age )
 	if(isset($_POST["GoDetails"]))
 	{	
 		$_SESSION["res"] = handleReservation();
@@ -27,10 +28,10 @@
 			$res = $_SESSION["res"];
 			for ($i = 0 ; $i < $res->get_nbr_pers() ; $i=$i+1)
 			{
-				$_SESSION["ErreurPerson"][$i] = '';
-				$_SESSION["ErreurAge"][$i] = '';
-				$_SESSION["BackName"][$i] = '';
-				$_SESSION["BackAge"][$i] = '';
+				$ErreurPerson[$i] = '';
+				$ErreurAge[$i] = '';
+				$BackName[$i] = '';
+				$BackAge[$i] = '';
 			}
 			include "ReservationDetails_view.php";
 			//creates an array objects person and saves it in session.		
@@ -49,63 +50,57 @@
 	// actions if second validate button is pressed or not --> Confirmation ( resume )
 	elseif(isset($_POST["GoValidation"]))
 	{	
+		// Gestion des entrée de details_view
 		$pers = array();
 		$var = 0;
 		$res = handleReservation();
 		
 		for($i=0 ; $i < $res->get_nbr_pers()  ;$i++)
 		{	
-			$pers[] = new person($_POST['name'][$i],$_POST['age'][$i]);
+			$pers[$i] = new person($_POST['name'][$i],$_POST['age'][$i]);
 			
-			$_SESSION["ErreurAge"][$i] = '';
-			$_SESSION["ErreurPerson"][$i] = '';
-			$_SESSION["BackName"][$i] = '';
-			$_SESSION["BackAge"][$i] = '';
-			
-			
+			$ErreurAge[$i] = '';
+			$ErreurPerson[$i] = '';
+			$BackName[$i] = '';
+			$BackAge[$i] = '';
+						
 			if ($_POST['name'][$i] == '')
 			{
 				$var = 1;
-				$_SESSION["ErreurPerson"][$i] = 'Entrez un nom';
+				$ErreurPerson[$i] = 'Entrez un nom';
 			}
-			else {$_SESSION["BackName"][$i] = $_POST['name'][$i];}
+			else {$BackName[$i] = $_POST['name'][$i];}
 			
 			if ($_POST['age'][$i] == '')
-			{
+			{	
 				$var = 1;
-				$_SESSION["ErreurAge"][$i] = 'Entrez un age';
+				$ErreurAge[$i] = 'Entrez un age';
 			}
-			else {$_SESSION["BackAge"][$i] = $_POST['age'][$i];}
+			else {$BackAge[$i] = $_POST['age'][$i];}
+			
+			
 		}	
 		
-		$_SESSION["pers"] = $pers;
-		echo $_SESSION["pers"];
+		$_SESSION["pers"] = serialize($pers);
 		
 		// checks if fields are correctly filled otherwise, displays error
 		if ($var == 1)
 		{
-			$list = retreivePers();
 			include "ReservationDetails_view.php";
 		}
 		
-		else 
-		{
-			$_SESSION["pers"] = serialize($pers);
-			$price = totalprice();
+		if ($var == 0)
+		{			
+			$price = totalprice();						
 			include "Validation_view.php";
 		}
+	}
 	
-	}
-	// action if cancel button is pushed 
-	elseif(isset($_POST["cancel"]))
+	elseif(isset($_POST['save']))
 	{
-		session_unset();  
-		session_destroy();
-		$backdest = "";
-		$backpers = "";
-		$backinsu = "<input type='checkbox' name='insurance' id='case' /><label for='case'></label><br><br>";
-		include "ReservationAccueil_view.php"; 
+		SaveInDBB();		
 	}
+	
 	// action if button back is pushed on ReservationDetails's Page
 	elseif(isset($_POST["backAccueil"]))
 	{
@@ -116,9 +111,22 @@
 	elseif(isset($_POST["backDetails"]))
 	{
 		GoBack(2);
+		$pers = $_SESSION["pers"];
 	}
 	
-	// Home Page --> Destination, Number of person & assurance 
+	// action if cancel button is pushed 
+	elseif(isset($_POST["cancel"]))
+	{
+		session_unset();  
+		session_destroy();
+		$backdest = "";
+		$backpers = "";
+		$backinsu = "<input type='checkbox' name='insurance' id='case' /><label for='case'></label><br><br>";
+		include "ReservationAccueil_view.php"; 
+
+	}
+	
+	//HOME PAGE --> Destination, Number of person & assurance 
 	else 
 	{
 		$backdest = "";
@@ -126,6 +134,8 @@
 		$backinsu = "<input type='checkbox' name='insurance' id='case' /><label for='case'></label><br><br>";
 		include "ReservationAccueil_view.php";
 	}
+	
+	
 	// FUNCTIONS
 	function handleReservation(){	
 		if(isset($_POST["insurance"]))
@@ -156,7 +166,7 @@
 		if(isset($_SESSION["pers"]))
 		{	
 			// if it does, returns it
-			return unserialize($_SESSION["pers"]);		
+			return unserialize($_SESSION["pers"]);
 		}
 		else 
 		{
@@ -165,9 +175,41 @@
 			$res = handleReservation();
 			for($i=0; $i<$res->get_nbr_pers();$i++)
 			{
-				$pers[] = new person("ab",1);
+				$pers[] = new person("",0);
 			}
 			return $pers;
+		}
+		
+	}
+	
+	function GoBack($var)
+	{
+		$res = handleReservation();
+		
+		if($var == 1)
+		{
+			$backdest = $res->get_destination();
+			$backpers = $res->get_nbr_pers();
+		
+			if ($res->get_insurance() == 1){$backinsu = "<input type='checkbox' name='insurance' id='case' checked='checked' /><label for='case'></label><br><br>";}
+			else {$backinsu = "<input type='checkbox' name='insurance' id='case' /><label for='case'></label><br><br>";}
+
+			include "ReservationAccueil_view.php";
+		}
+		
+		if($var == 2)
+		{
+			$pers = retreivePers();
+									
+			for ($i = 0 ; $i < $res->get_nbr_pers() ; $i=$i+1)
+			{		
+				$BackName[$i] = $pers[$i]->GetName() ;
+				$BackAge[$i] = $pers[$i]->GetAge();
+				$ErreurPerson [$i] = '';
+				$ErreurAge[$i] = '';
+			}
+			
+			include "ReservationDetails_view.php";
 		}
 	}
 	
@@ -192,31 +234,44 @@
 		return $price;	
 
 	}	
-	function GoBack($var)
+	
+	function SaveInDBB()
 	{
 		$res = handleReservation();
-		$backdest = $res->get_destination();
-		$backpers = $res->get_nbr_pers();
-		if ($res->get_insurance() == 1){$backinsu = "<input type='checkbox' name='insurance' id='case' checked='checked' /><label for='case'></label><br><br>";}
-		else {$backinsu = "<input type='checkbox' name='insurance' id='case' /><label for='case'></label><br><br>";}
+		$pers = retreivePers();
 		
-		if($var == 1)
-		{
-			include "ReservationAccueil_view.php";
+		if ( $res->get_insurance() == 1) { $insurance = 1;}
+		else { $insurance = 0;}
+		
+		$traveller = '';
+		// Display travellers
+		for($i=0 ; $i < $res->get_nbr_pers();$i++)
+		{	
+			$name = $pers[$i]->GetName();
+			$age = $pers[$i]->GetAge();
+			$traveller = $traveller . $name . '_' . $age;
 		}
+					
+		// Connexion à la base de données
+		$bdd = new mysqli("localhost", "root", "","reservation_data") or
 		
-		if($var == 2)
+		die("Could not select database");
+
+		if ($bdd->connect_errno) 
 		{
-			//$_SESSION["pers"] prend la valeur de $pers dans le elseif(GoValidation) mais c'est la valeur initialisée qui apparait ici
-			for ($i = 0 ; $i < $res->get_nbr_pers() ; $i=$i+1)
-			{
-				$_SESSION["BackName"][$i] = '';
-				$_SESSION["BackAge"][$i] = '';
-			}
+			echo "Echec lors de la connexion à MySQL : (" . $bdd->connect_errno . ")
+			" . $bdd->connect_error;
+		}
+
+		else { echo "Saved in DataBase"; }
+		
+		// Modification de la BDD 
+		// Ajout dans la base de données 
+		$queryAdd = "INSERT INTO `reservation`(`Destination`, `Assurance`, `Voyageur(s)`, `PrixTot`) 
+					 VALUES ( '".$res->get_destination()."' , ".$insurance." , '".$traveller."' , ".totalprice()." )";
 			
-			include "ReservationDetails_view.php";
-		}
+		$result = $bdd->query($queryAdd);
+		
 	}
-	
 ?>
 

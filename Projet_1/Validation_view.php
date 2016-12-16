@@ -22,7 +22,7 @@
 			
 			else 
 			{
-				echo "<p>Pas d'assurance annulation : NON </p> ";
+				echo "<p>Assurance annulation : NON </p> ";
 			}
 							
 			for($i=0 ; $i < $res->get_nbr_pers();$i++)
@@ -35,10 +35,10 @@
 			echo sprintf("Prix total : %d", $price);
 		?>
 		
-		<form method="post" >
-				<!-- <input type='submit' name='' value='Sauvegarder'/> --> 
+		<form method="post" >				
 				<input type='submit' name='backDetails' value='Retour'/> 
 				<input type='submit' name='cancel' value='Annuler'/> 
+				<input type='submit' name='save' value='Sauvegarder'/> 
 		</form> <br>
 		
     </body>

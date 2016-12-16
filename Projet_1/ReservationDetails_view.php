@@ -16,14 +16,14 @@
 				for ($i = 0 ; $i < $res->get_nbr_pers() ; $i=$i+1)
 				{
 					$p = $i+1;
-					$name = $_SESSION["BackName"][$i];
-					$age = $_SESSION["BackAge"][$i];
+					$name = $BackName[$i];
+					$age = $BackAge[$i];
 					
 					echo "Passager ".$p."";
 					echo "<p>Nom <input type='text' name='name[".$i."]' value='".$name."'/>";
-					echo "<b>".$_SESSION["ErreurPerson"][$i]."</b></p>";
+					echo "<b>".$ErreurPerson[$i]."</b></p>";
 					echo "<p>Age <input type='text' name='age[".$i."]' value='".$age."'/>";
-					echo "<b>".$_SESSION["ErreurAge"][$i]."</b></p>";
+					echo "<b>".$ErreurAge[$i]."</b></p>";
 				}
 			?>
 
