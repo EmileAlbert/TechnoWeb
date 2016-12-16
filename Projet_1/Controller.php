@@ -2,20 +2,20 @@
 
 //ToDo 
 //     : Assainir les entrées & Css 
-//     : Retour Details -> Set value   
-//     : Retrouver la liste des personne pour sauver dans la bdd
-// 	   : BackName -> LIGNE 208 ? CA marche avant !
+//     : controlleur 
+//     : (CSS )
 
 
 	session_start();
 	
 	include "ReservationAccueil_model.php";
 	include "Person.php";
-	
+				
 	$ErreurPerson = array();
 	$ErreurAge = array();
 	$BackName = array();
 	$BackAge = array();
+	
 	
 	// actions if first validate button is pressed or not --> DETAILS ( Name & age )
 	if(isset($_POST["GoDetails"]))
@@ -26,12 +26,31 @@
 		if(($_POST["destination"] != "") && !is_numeric($_POST["destination"]) && ($_POST["nbr_pers"] != 0))
 		{
 			$res = $_SESSION["res"];
+			
+			if ( isset($_GET['id']) )
+			{
+				$listpersonne = reload(2, $_GET['id']);
+				// $spec = explode( ' ' , $listpersonne);
+			}
+			
 			for ($i = 0 ; $i < $res->get_nbr_pers() ; $i=$i+1)
 			{
+				if ( isset($_GET['id']) )
+				{
+					$spec = explode( '_' ,  $listpersonne[$i]);
+					$BackName[$i] = $spec[0];
+					$BackAge[$i] = $spec[1];
+				}
+				
+				else 
+				{
+					$BackName[$i] = '';
+					$BackAge[$i] = '';
+				} 
+				
 				$ErreurPerson[$i] = '';
 				$ErreurAge[$i] = '';
-				$BackName[$i] = '';
-				$BackAge[$i] = '';
+
 			}
 			include "ReservationDetails_view.php";
 			//creates an array objects person and saves it in session.		
@@ -129,10 +148,22 @@
 	//HOME PAGE --> Destination, Number of person & assurance 
 	else 
 	{
-		$backdest = "";
-		$backpers = "";
-		$backinsu = "<input type='checkbox' name='insurance' id='case' /><label for='case'></label><br><br>";
-		include "ReservationAccueil_view.php";
+		if (!isset($_GET["action"]))
+		{			
+			$backdest = "";
+			$backpers = "";
+			$backinsu = "<input type='checkbox' name='insurance' id='case' /><label for='case'></label><br><br>";
+			include "ReservationAccueil_view.php";
+		}
+		
+		else 
+		{			
+			$_SESSION['res'] = reload(1, $_GET['id']);
+			Goback(1);
+		}
+		
+			
+		
 	}
 	
 	
@@ -235,6 +266,50 @@
 
 	}	
 	
+	function reload($object, $ID)
+	{
+		$mysqli = new mysqli('localhost', 'root', '', 'reservation_data');
+    
+		if ($mysqli->connect_errno) {
+		  echo 'ERROR: Connection mysqli failed'.$mysqli->connect_error;
+		}
+		
+		$query = 'SELECT * FROM reservation WHERE ID='.$ID.'';
+		$result = $mysqli->query($query);
+		
+		$table = '';
+		
+		while ($row = $result->fetch_assoc())
+		{
+			$destination = $row['Destination'];
+			if( $row['Assurance'] == 1){$assurance = true;}
+			if( $row['Assurance'] == 0){$assurance = false;}
+			$listpersonnes = $row['Voyageur(s)'];
+		}
+		
+		// Personne tel que Emile_16
+		$personne = explode( ' ' , $listpersonnes);
+
+		if ($object == 1)
+		{
+			if (sizeof($personne) > 1 ){$nbr_pers = sizeof($personne)-1;}
+			else {$nbr_pers = sizeof($personne);}
+		
+			$res = new reservation($destination, $nbr_pers, $assurance);
+			$res->save();
+				
+			return $res;
+		}
+		
+		if ($object == 2)
+		{		
+			return $personne;
+		}	
+	}
+		
+		
+		
+	
 	function SaveInDBB()
 	{
 		$res = handleReservation();
@@ -249,7 +324,7 @@
 		{	
 			$name = $pers[$i]->GetName();
 			$age = $pers[$i]->GetAge();
-			$traveller = $traveller . $name . '_' . $age;
+			$traveller = $traveller . $name . '_' . $age .' ';
 		}
 					
 		// Connexion à la base de données
@@ -266,11 +341,24 @@
 		else { echo "Saved in DataBase"; }
 		
 		// Modification de la BDD 
-		// Ajout dans la base de données 
-		$queryAdd = "INSERT INTO `reservation`(`Destination`, `Assurance`, `Voyageur(s)`, `PrixTot`) 
-					 VALUES ( '".$res->get_destination()."' , ".$insurance." , '".$traveller."' , ".totalprice()." )";
+		// Ajout dans la base de données 		
+		if ( !isset($_GET['action'])) 
+		{
+			$query = "INSERT INTO `reservation`(`Destination`, `Assurance`, `Voyageur(s)`, `PrixTot`) 
+					VALUES ( '".$res->get_destination()."' , ".$insurance." , '".$traveller."' , ".totalprice()." )";
+		}
+		
+		// Modification dans la BDD 
+		if ( isset($_GET['action'])) 
+		{
+			$query = "UPDATE `reservation` SET `Destination`='".$res->get_destination()."',`Assurance`=".$insurance.",`Voyageur(s)`='".$traveller."',`PrixTot`=".totalprice()." WHERE ID=".$_GET['id'];
 			
-		$result = $bdd->query($queryAdd);
+		}
+		
+		$result = $bdd->query($query);
+		
+		
+		echo '<br><a href="http://localhost/Projet_1/Controller_admin_model.php"> <input type="button" value="Mode Administeur" /></a>';
 		
 	}
 ?>
